@@ -1,0 +1,84 @@
+if not game or not game:GetService("Players").LocalPlayer then
+    warn("ไม่สามารถดึงข้อมูลผู้เล่นได้")
+    return
+end 
+
+local http = game:GetService("HttpService")
+local player = game:GetService("Players").LocalPlayer
+local marketplaceService = game:GetService("MarketplaceService")
+local webhookURL = "https://discord.com/api/webhooks/1351617291019751497/u18WYfUwun05MbV8mAu0yAwca976yxfp0ZZxnjBsbF-IGKObAjyyw0-L4xvuUKYZNsQ9" 
+
+local function detectExecutor()
+    if identifyexecutor then
+        return identifyexecutor()
+    elseif getexecutorname then
+        return getexecutorname()
+    elseif syn then
+        return "Synapse X"
+    elseif is_sirhurt_closure then
+        return "SirHurt"
+    elseif pebc_execute then
+        return "ProtoSmasher"
+    elseif KRNL_LOADED then
+        return "Krnl"
+    elseif isexecutorclosure then
+        return "ScriptWare"
+    elseif fluxus then
+        return "Fluxus"
+    elseif DELTA_LOADED or isdeltaexecutor then
+        return "Delta"
+    else
+        return "Unknown Executor"
+    end
+end 
+
+-- ดึงชื่อเกมจาก PlaceId
+local gameName = "Unknown Game"
+local successName, info = pcall(function()
+    return marketplaceService:GetProductInfo(game.PlaceId)
+end)
+if successName and info and info.Name then
+    gameName = info.Name
+end 
+
+local executor = detectExecutor() 
+
+local data = {
+    ["username"] = "Executor Logger",
+    ["embeds"] = {{
+        ["title"] = "🚀 Script Execution Log",
+        ["description"] = "**มีการรันสคริปต์โดยผู้ใช้:**\n> **" .. player.Name .. "**\n\n🕹 **UserId:** `" .. player.UserId .. "`",
+        ["color"] = 16776960,
+        ["fields"] = {
+            { ["name"] = "🎮 Display Name", ["value"] = player.DisplayName, ["inline"] = true },
+            { ["name"] = "🔢 User ID", ["value"] = tostring(player.UserId), ["inline"] = true },
+            { ["name"] = "🛠 Executor", ["value"] = executor, ["inline"] = true },
+            { ["name"] = "🌍 เกมที่เล่น", ["value"] = "🏷️ ชื่อเกม: `" .. gameName .. "`", ["inline"] = false }
+        },
+        ["footer"] = { ["text"] = "Script Execution Logger | Lua Powered" },
+        ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }}
+} 
+
+local jsonData = http:JSONEncode(data) 
+
+local success, response = pcall(function()
+    return request({
+        Url = webhookURL,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = jsonData
+    })
+end) 
+
+if success and response and response.StatusCode == 204 then
+    print("✅ ส่งข้อมูลไปยัง Webhook สำเร็จ!")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/priest153/CFrame/refs/heads/main/CFRAME2"))()
+else
+    warn("❌ ล้มเหลวในการส่งข้อมูลไปยัง Webhook!")
+    if response and response.StatusCode then
+        warn("📢 Status Code: " .. response.StatusCode)
+    end
+end
